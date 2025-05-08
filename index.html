@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>小狗逃生小游戏</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f8f8f8;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #fff;
+      border: 4px solid #000;
+      box-sizing: border-box;
+    }
+    #dog {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      width: 80px;
+      height: auto;
+      transition: left 0.3s linear;
+    }
+    .stone {
+      position: absolute;
+      top: 0;
+      width: 60px;
+      height: 60px;
+      background: gray;
+      border-bottom: 10px solid black;
+      transition: top 1s ease-in;
+    }
+    #message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2em;
+      display: none;
+    }
+    .btn {
+      position: absolute;
+      bottom: 10px;
+      padding: 10px;
+      font-size: 1.2em;
+      background: #ccc;
+      border: 2px solid #000;
+      cursor: pointer;
+    }
+    #moveBtn { left: 100px; }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="warning">小心！前方石头摇摇欲坠！</div>
+    <img id="dog" src="dog.jpg" alt="dog">
+    <div class="stone" style="left: 40%;"></div>
+    <div class="stone" style="left: 50%;"></div>
+    <div class="stone" style="left: 60%;"></div>
+    <div id="message"></div>
+    <div id="moveBtn" class="btn">前进</div>
+  </div>
+
+  <script>
+    const dog = document.getElementById('dog');
+    const stones = document.querySelectorAll('.stone');
+    const moveBtn = document.getElementById('moveBtn');
+    const message = document.getElementById('message');
+
+    let dogX = 10;
+
+    moveBtn.onclick = () => {
+  dogX += 50;
+  dog.style.left = dogX + 'px';
+
+  const dogCenter = dogX + 40;
+  const inDangerZone = dogCenter > window.innerWidth * 0.4 && dogCenter < window.innerWidth * 0.65;
+
+  // 判断石头是否仍在顶部
+  const anyStoneStillUp = Array.from(stones).some(stone => parseInt(stone.style.top || '0') < window.innerHeight * 0.5);
+
+  if (inDangerZone && anyStoneStillUp) {
+    dropStones(true);
+    setTimeout(() => fail(), 1000);
+  }
+
+  if (dogX > window.innerWidth - 100) {
+    showMessage('成功！');
+    warning.style.display = 'none';
+  }
+};
+
+    function dropStones(fall) {
+      stones.forEach(stone => {
+        if (fall) stone.style.top = '90%';
+      });
+    }
+
+    function fail() {
+      showMessage('被砸死了！');
+      moveBtn.disabled = true;
+    }
+
+    function showMessage(text) {
+      message.style.display = 'block';
+      message.textContent = text;
+    }
+
+    // 模拟晃动手机：用 shake 事件模拟触发掉落
+    if (window.DeviceMotionEvent) {
+      let lastShakeTime = 0;
+      window.addEventListener('devicemotion', (event) => {
+        const acc = event.accelerationIncludingGravity;
+        const shake = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+        if (shake > 30 && Date.now() - lastShakeTime > 1000) {
+          dropStones(true);
+          lastShakeTime = Date.now();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
